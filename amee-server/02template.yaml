@@ -1,0 +1,90 @@
+apiVersion: v1
+kind: Template
+labels:
+  template: amee-server-ephemeral
+metadata:
+  annotations:
+    description: 'AMEE server service, without persistent storage. WARNING:
+      Any data stored will be lost upon pod destruction. Only use this template for
+      testing'
+    iconClass: icon-jboss
+    tags: instant-app, amee
+  creationTimestamp: null
+  name: amee-server-ephemeral
+objects:
+- apiVersion: v1
+  kind: Route
+  metadata:
+    name: amee-server
+  spec:
+    host: ${APPLICATION_DOMAIN}
+    to:
+      kind: Service
+      name: amee-server
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    labels:
+      app: amee-server
+    name: amee-server
+  spec:
+    replicas: 1
+    selector:
+      app: amee-server
+      deploymentconfig: amee-server
+    strategy:
+      resources: {}
+    template:
+      metadata:
+        annotations:
+          openshift.io/generated-by: OpenShiftNewApp
+        creationTimestamp: null
+        labels:
+          app: amee-server
+          deploymentconfig: amee-server
+      spec:
+        containers:
+        - image: amee-server:latest
+          name: amee-server
+          ports:
+          - containerPort: 16842
+            protocol: TCP
+          resources: {}
+    triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - amee-server
+        from:
+          kind: ImageStreamTag
+          name: amee-server:latest
+          namespace: custom-images
+      type: ImageChange
+  status: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    labels:
+      app: amee-server
+    name: amee-server
+  spec:
+    ports:
+    - name: 16842-tcp
+      port: 16842
+      protocol: TCP
+      targetPort: 16842
+    selector:
+      app: amee-server
+      deploymentconfig: amee-server
+  status:
+    loadBalancer: {}
+parameters:
+- description: The external DNS name. If left blank a value will be defaulted.
+  name: APPLICATION_DOMAIN

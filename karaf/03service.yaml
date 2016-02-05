@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: List
+metadata: {}
+items:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      description: Exposes and load balances the application pods
+    name: sample-camel-log
+  spec:
+    ports:
+    - name: jolokia
+      port: 8778
+      targetPort: 8778
+    selector:
+      name: sample-camel-log
+

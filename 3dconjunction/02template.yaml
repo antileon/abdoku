@@ -1,0 +1,91 @@
+apiVersion: v1
+kind: Template
+labels:
+  template: 3dconjunction
+metadata:
+  annotations:
+    description: '3D conjunction assessment service'
+    iconClass: icon-tomcat
+    tags: instant-app, asteria
+  creationTimestamp: null
+  name: 3dconjunction
+objects:
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    labels:
+      app: 3dconjunction
+    name: 3dconjunction
+  spec:
+    replicas: 1
+    selector:
+      app: 3dconjunction
+      deploymentconfig: 3dconjunction
+    strategy:
+      resources: {}
+    template:
+      metadata:
+        annotations:
+          openshift.io/generated-by: OpenShiftNewApp
+        creationTimestamp: null
+        labels:
+          app: 3dconjunction
+          deploymentconfig: 3dconjunction
+      spec:
+        containers:
+        - image: 3dconjunction:latest
+          name: 3dconjunction
+          env:
+          - name: ASTERIA_DEFAULT_BROKER
+            value: ${ASTERIA_DEFAULT_BROKER}
+          - name: ASTERIA_PROPAGATION_BROKER
+            value: ${ASTERIA_PROPAGATION_BROKER}
+          ports:
+          - containerPort: 16842
+            protocol: TCP
+          resources: {}
+    triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - 3dconjunction
+        from:
+          kind: ImageStreamTag
+          name: 3dconjunction:latest
+          namespace: custom-images
+      type: ImageChange
+  status: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: conjunction
+  spec:
+    selector:
+      name: 3dconjunction
+    ports:
+    - port: 8080
+      protocol: TCP
+      targetPort: 8080
+- apiVersion: v1
+  kind: Route
+  metadata:
+    name: amee-server
+  spec:
+    host: ${APPLICATION_DOMAIN}
+    to:
+      kind: Service
+      name: conjunction
+parameters:
+- description: The external DNS name. If left blank a value will be defaulted.
+  name: APPLICATION_DOMAIN
+- description: Asteria Default Broker  
+  name: ASTERIA_DEFAULT_BROKER
+  value: tcp://149.243.222.53:61616
+- description: Asteria Propagation Broker
+  name: ASTERIA_PROPAGATION_BROKER
+  value: tcp://149.243.222.53:61616
+

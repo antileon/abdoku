@@ -1,0 +1,44 @@
+apiVersion: v1
+items:
+
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    annotations:
+      description: Defines how to deploy the application server
+    name: sample-camel-log
+  spec:
+    replicas: 1
+    selector:
+      name: sample-camel-log
+    strategy:
+      type: Rolling
+    template:
+      metadata:
+        labels:
+          name: sample-camel-log
+        name: sample-camel-log
+      spec:
+        containers:
+        - image: sample-camel-log
+          name: sample-camel-log
+          ports:
+          - containerPort: 8181
+            name: http
+          - containerPort: 8778
+            name: jolokia
+    triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - sample-camel-log
+        from:
+          kind: ImageStreamTag
+          name: sample-camel-log:latest
+      type: ImageChange
+    - type: ConfigChange
+
+
+kind: List
+metadata: {}
+

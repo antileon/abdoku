@@ -1,0 +1,164 @@
+apiVersion: v1
+kind: Template
+labels:
+  template: amee-server-ephemeral
+metadata:
+  annotations:
+    description: 'AMEE server service, without persistent storage. WARNING: Any data
+      stored will be lost upon pod destruction. Only use this template for testing'
+    iconClass: icon-jboss
+    tags: instant-app, amee
+  creationTimestamp: null
+  name: amee-server-ephemeral
+objects:
+- apiVersion: v1
+  kind: Route
+  metadata:
+    name: amee-server
+  spec:
+    host: ${APPLICATION_DOMAIN}
+    to:
+      kind: Service
+      name: amee-server
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    labels:
+      app: amee-server
+    name: centos
+  spec:
+    dockerImageRepository: library/centos
+  status:
+    dockerImageRepository: ""
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    labels:
+      app: amee-server
+    name: amee-server
+  spec: {}
+  status:
+    dockerImageRepository: ""
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    labels:
+      app: amee-server
+    name: amee-server
+  spec:
+    output:
+      to:
+        kind: ImageStreamTag
+        name: amee-server:latest
+    resources: {}
+    source:
+      git:
+        httpProxy: http://debre-proxy:8080
+        httpsProxy: http://debre-proxy:8080
+        uri: https://pforge.eso-io.com/git/cloud
+      sourceSecret:
+        name: hernst
+      type: Git
+    strategy:
+      dockerStrategy:
+        from:
+          kind: ImageStreamTag
+          name: centos:latest
+      type: Docker
+    triggers:
+    - github:
+        secret: ${GITHUB_WEBHOOK_SECRET}
+      type: GitHub
+    - generic:
+        secret: ${GENERIC_WEBHOOK_SECRET}
+      type: Generic
+    - type: ConfigChange
+    - imageChange: {}
+      type: ImageChange
+  status:
+    lastVersion: 0
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    labels:
+      app: amee-server
+    name: amee-server
+  spec:
+    replicas: 1
+    selector:
+      app: amee-server
+      deploymentconfig: amee-server
+    strategy:
+      resources: {}
+    template:
+      metadata:
+        annotations:
+          openshift.io/generated-by: OpenShiftNewApp
+        creationTimestamp: null
+        labels:
+          app: amee-server
+          deploymentconfig: amee-server
+      spec:
+        containers:
+        - image: library/amee-server:latest
+          name: amee-server
+          ports:
+          - containerPort: 16842
+            protocol: TCP
+          resources: {}
+    triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - amee-server
+        from:
+          kind: ImageStreamTag
+          name: amee-server:latest
+      type: ImageChange
+  status: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    labels:
+      app: amee-server
+    name: amee-server
+  spec:
+    ports:
+    - name: 16842-tcp
+      port: 16842
+      protocol: TCP
+      targetPort: 16842
+    selector:
+      app: amee-server
+      deploymentconfig: amee-server
+  status:
+    loadBalancer: {}
+parameters:
+- description: The exposed hostname that will route to the CakePHP service, if left
+    blank a value will be defaulted.
+  name: APPLICATION_DOMAIN
+- description: A secret string used to configure the GitHub webhook
+  from: '[a-zA-Z0-9]{40}'
+  generate: expression
+  name: GITHUB_WEBHOOK_SECRET
+- description: Generic build trigger secret
+  from: '[a-zA-Z0-9]{8}'
+  generate: expression
+  name: GENERIC_WEBHOOK_SECRET
+  required: true

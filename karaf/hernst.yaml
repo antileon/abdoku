@@ -1,0 +1,10 @@
+apiVersion: v1
+data:
+  password: UzB1dGhDMG1wIQ==
+  username: aGVybnN0
+kind: Secret
+metadata:
+  creationTimestamp: null
+  name: hernst
+type: Opaque
+

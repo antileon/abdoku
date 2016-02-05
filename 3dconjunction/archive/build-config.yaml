@@ -1,0 +1,45 @@
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    creationTimestamp: null
+    labels:
+      generatedby: OpenShiftWebConsole
+      name: asteria
+    name: asteria
+  spec:
+    output:
+      to:
+        kind: ImageStreamTag
+        name: 3dconjunction:latest
+    resources: {}
+    source:
+      git:
+        ref: master
+        uri: "https://pforge.eso-io.com/git/asteria"
+        httpProxy: http://debre-proxy:8080
+        httpsProxy: http://debre-proxy:8080
+      sourceSecret:
+        name: hernst
+      type: Git
+    strategy:
+      sourceStrategy:
+        env:
+        - name: HTTP_PROXY
+          value: http://debre-proxy:8080
+        - name: HTTPS_PROXY
+          value: https://debre-proxy:8080
+        - name: MAVEN_ARGS
+          value: clean install -s settings.xml -DproxyHost=debre-proxy -DproxyPort=8080 -DproxySet=true
+        from:
+          kind: ImageStreamTag
+          name: jboss-webserver3-tomcat8-openshift:3.0
+          namespace: openshift
+      type: Source
+    triggers:
+    - generic:
+        secret: 58a8453ab350ff6b
+      type: Generic
+    - imageChange: {}
+      type: ImageChange
+  status:
+    lastVersion: 0

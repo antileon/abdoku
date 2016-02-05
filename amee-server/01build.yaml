@@ -1,0 +1,79 @@
+apiVersion: v1
+kind: List
+metadata: {}
+items:
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    labels:
+      app: amee-server
+    name: centos
+  spec:
+    dockerImageRepository: library/centos
+  status:
+    dockerImageRepository: ""
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    labels:
+      app: amee-server
+    name: amee-server
+  spec: {}
+  status:
+    dockerImageRepository: ""
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    labels:
+      app: amee-server
+    name: amee-server
+  spec:
+    output:
+      to:
+        kind: ImageStreamTag
+        name: amee-server:latest
+    resources: {}
+    source:
+      git:
+        uri: https://pforge.eso-io.com/git/cloud
+        httpProxy: http://debre-proxy:8080
+        httpsProxy: http://debre-proxy:8080
+      sourceSecret:
+        name: hernst
+      type: Git
+    strategy:
+      dockerStrategy:
+        from:
+          kind: ImageStreamTag
+          name: centos:latest
+      type: Docker
+    triggers:
+    - github:
+        secret: Vn0q_MCY6Crc-ArUTVwi
+      type: GitHub
+    - generic:
+        secret: AsZ_04RR6UJrdGsgHFe8
+      type: Generic
+    - type: ConfigChange
+    - imageChange: {}
+      type: ImageChange
+  status:
+    lastVersion: 0
+- apiVersion: v1
+  data:
+    password: UzB1dGhDMG1wIQ==
+    username: aGVybnN0
+  kind: Secret
+  metadata:
+    creationTimestamp: null
+    name: hernst
+  type: Opaque
